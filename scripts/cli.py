@@ -1,6 +1,7 @@
 """RESEARCH_ONLY CLI for the A-share All Weather model.
 
 子命令：
+  health-check        检查 Python、SDK、服务方 HTTPS 与凭证配置
   check-login          验证 pandadata 凭证
   current-allocation   输出反波动率目标与实际风险贡献诊断
   backtest             运行带预热、持仓漂移和真实换手成本的回测
@@ -46,6 +47,7 @@ from backtest import run as run_backtest      # noqa: E402
 from pandadata_security import (              # noqa: E402
     PandaDataSecurityError,
     establish_session,
+    startup_health_check,
 )
 
 
@@ -54,7 +56,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s | %(message)s",
 )
 log = logging.getLogger("dalio.cli")
-SKILL_VERSION = "0.4.0"
+SKILL_VERSION = "0.5.0"
 WARMUP_CALENDAR_DAYS = 400
 
 
@@ -344,6 +346,30 @@ def _build_run_metadata(
 
 
 # -------- 子命令 --------------------------------------------------------
+
+def cmd_health_check(args) -> int:
+    """Check runtime, SDK, provider HTTPS, and credential readiness."""
+    _load_dotenv()
+    try:
+        report = startup_health_check(
+            timeout=args.timeout,
+            require_credentials=not args.transport_only,
+        )
+    except PandaDataSecurityError as exc:
+        print(f"[FAIL] 启动健康检查未通过：{exc}")
+        return 1
+    except Exception as exc:
+        print(f"[FAIL] 启动健康检查失败（{type(exc).__name__}）")
+        return 1
+
+    print("OK  启动健康检查通过")
+    print(f"Python：{report['python']}")
+    print(f"HTTPS 端点：{report['endpoint']}")
+    print(f"TLS：{report['tls_version']}")
+    print(f"SDK：{report['sdk']}")
+    print(f"凭证方式：{report['auth_mode']}")
+    return 0
+
 
 def cmd_check_login(args) -> int:
     try:
@@ -855,9 +881,28 @@ def _nonnegative_float(value: str) -> float:
     return parsed
 
 
+def _health_timeout(value: str) -> float:
+    parsed = float(value)
+    if not np.isfinite(parsed) or not 0.1 <= parsed <= 30.0:
+        raise argparse.ArgumentTypeError("value must be between 0.1 and 30")
+    return parsed
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="dalio-all-weather")
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    s = sub.add_parser(
+        "health-check",
+        help="检查 Python、SDK、服务方 HTTPS 和凭证配置",
+    )
+    s.add_argument("--timeout", type=_health_timeout, default=5.0)
+    s.add_argument(
+        "--transport-only",
+        action="store_true",
+        help="只检查运行环境与 HTTPS，不要求已配置凭证",
+    )
+    s.set_defaults(func=cmd_health_check)
 
     s = sub.add_parser("check-login")
     s.set_defaults(func=cmd_check_login)
@@ -898,23 +943,18 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def _auto_login() -> None:
-    """入口处从环境变量自动登录 pandadata（幂等，失败不抛，让下游继续报错）。"""
-    user, pwd = _credentials()
-    supplied_token = os.environ.get("PANDADATA_TOKEN", "").strip()
-    if not supplied_token and (not user or not pwd):
-        return
-    try:
-        _login()
-    except Exception as e:  # noqa: BLE001
-        log.warning("pandadata 自动登录失败（%s）", type(e).__name__)
-
-
 def main(argv: Optional[list[str]] = None) -> int:
     args = build_parser().parse_args(argv)
     _load_dotenv()
-    if args.cmd != "check-login":
-        _auto_login()
+    if args.cmd not in {"health-check", "check-login"}:
+        try:
+            _login()
+        except Exception as exc:
+            print(
+                f"[ERROR] 启动检查或登录失败（{type(exc).__name__}）",
+                file=sys.stderr,
+            )
+            return 1
     return args.func(args) or 0
 
 

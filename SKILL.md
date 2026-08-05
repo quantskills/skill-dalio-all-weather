@@ -17,16 +17,16 @@ description: "Build and audit reproducible, research-only A-share All Weather al
 
 ## 运行准备
 
-使用 Python 3.12，并在 Skill 根目录安装锁定依赖：
+使用 Python >=3.11 且 <3.13，并在 Skill 根目录安装锁定依赖：
 
 ```powershell
 python -m pip install --require-hashes -r requirements-lock.txt
 ```
 
-真实数据连接必须显式提供受信 HTTPS 地址；HTTP 和重定向一律拒绝：
+真实数据连接必须显式提供由 PandaData 数据服务方配置并维护的受信 HTTPS 地址；HTTP 和重定向一律拒绝：
 
 ```text
-PANDADATA_BASE_URL=https://你的受信网关
+PANDADATA_BASE_URL=https://服务方提供的地址
 ```
 
 优先使用短期令牌：
@@ -46,9 +46,10 @@ PANDADATA_PASSWORD=你的密码
 
 命令必须在整个进程内禁用第三方 SDK 的 `user.json` 读取、写入、自动登录和删除，强制证书校验，并使用不含账号密码的数据客户端。令牌到期后停止当前运行；结束进程并重新认证，不得从磁盘自动刷新。
 
-先执行：
+先执行启动健康检查，再验证登录：
 
 ```powershell
+python scripts\cli.py health-check
 python scripts\cli.py check-login
 ```
 
@@ -61,7 +62,7 @@ python scripts\cli.py check-login
 5. 在完整季度末形成目标，并在下一共同交易日执行。
 6. 输出配置、实际持仓、风险贡献、换手、成本、指纹和限制说明。
 
-仓库不附带行情、宏观数据、缓存或第三方安装包。使用者需要自行取得 PandaData 访问权限、受信 HTTPS 服务并遵守相应的数据授权。`panda_data==0.0.12` 的公开包元数据未说明软件许可证或公开源码地址，使用前需确认授权。
+仓库不附带行情、宏观数据、缓存或第三方安装包。使用者需要自行取得 PandaData 访问权限，PandaData 数据服务方需要提供受信 HTTPS 端点；本仓库不能代替服务方配置 HTTPS。使用者还需遵守相应的数据授权。`panda_data==0.0.12` 的公开包元数据未说明软件许可证或公开源码地址，使用前需确认授权。
 
 常用命令：
 
@@ -132,7 +133,7 @@ python -m pytest tests -q
 python -m compileall -q scripts tests
 ```
 
-测试通过只说明程序行为符合研究约定，不说明策略有效或适合实盘。真实数据运行属于有条件验证：没有 PandaData 兼容 HTTPS 地址时必须停止。统计和数据定义见 `references/methodology.md` 与 `references/data-mapping.md`。
+测试通过只说明程序行为符合研究约定，不说明策略有效或适合实盘。真实数据运行属于有条件验证：没有服务方提供的 PandaData HTTPS 地址时必须停止。统计和数据定义见 `references/methodology.md` 与 `references/data-mapping.md`。
 
 ## 维护与项目状态
 

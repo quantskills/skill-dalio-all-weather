@@ -13,6 +13,19 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import cli  # noqa: E402
+import pandadata_security as security  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _provider_tls_is_healthy(monkeypatch):
+    monkeypatch.setattr(
+        security,
+        "_probe_tls",
+        lambda base_url, timeout=5.0: {
+            "tls_version": "TLSv1.3",
+            "certificate_not_after": "Dec 31 23:59:59 2030 GMT",
+        },
+    )
 
 
 def test_default_credential_file_is_user_level_only():
@@ -442,6 +455,33 @@ def test_check_login_fails_when_credentials_are_missing(monkeypatch, capsys):
     assert "缺少" in output
 
 
+def test_health_check_reports_safely(monkeypatch, capsys):
+    secret = "must-never-appear"
+    monkeypatch.setenv("PANDADATA_TOKEN", secret)
+    monkeypatch.setattr(
+        cli,
+        "startup_health_check",
+        lambda **kwargs: {
+            "status": "ok",
+            "python": "3.11.9",
+            "endpoint": "https://provider.example.test/api",
+            "sdk": "compatible",
+            "auth_mode": "token",
+            "tls_version": "TLSv1.3",
+            "certificate_not_after": "2030-12-31",
+        },
+    )
+
+    rc = cli.cmd_health_check(
+        SimpleNamespace(timeout=3.0, transport_only=False)
+    )
+
+    output = capsys.readouterr().out
+    assert rc == 0
+    assert "OK" in output
+    assert secret not in output
+
+
 def test_check_login_calls_login_and_never_prints_secret(monkeypatch, capsys):
     secret = "do-not-print-this"
     calls = []
@@ -605,20 +645,41 @@ def test_login_accepts_ephemeral_token_without_password(
     assert calls[-1]["verify_ssl"] is True
 
 
-def test_auto_login_runs_for_token_only_session(monkeypatch):
+def test_main_runs_login_before_data_command(monkeypatch):
     calls = []
-    monkeypatch.delenv("PANDADATA_USER", raising=False)
-    monkeypatch.delenv("PANDADATA_PASSWORD", raising=False)
-    monkeypatch.delenv("PANDA_USERNAME", raising=False)
-    monkeypatch.delenv("PANDA_PASSWORD", raising=False)
-    monkeypatch.setenv("PANDADATA_TOKEN", "ephemeral-token")
+    monkeypatch.setattr(cli, "_load_dotenv", lambda candidates=None: None)
+    monkeypatch.setattr(cli, "_login", lambda: calls.append("login") or "ok")
     monkeypatch.setattr(
-        cli, "_login", lambda: calls.append(True) or "ephemeral-token"
+        cli,
+        "cmd_current_allocation",
+        lambda args: calls.append("command") or 0,
     )
 
-    cli._auto_login()
+    rc = cli.main(["current-allocation"])
 
-    assert calls == [True]
+    assert rc == 0
+    assert calls == ["login", "command"]
+
+
+def test_main_fails_closed_before_data_access(monkeypatch, capsys):
+    secret = "must-never-appear"
+    monkeypatch.setattr(cli, "_load_dotenv", lambda candidates=None: None)
+    monkeypatch.setattr(
+        cli,
+        "_login",
+        lambda: (_ for _ in ()).throw(RuntimeError(secret)),
+    )
+    monkeypatch.setattr(
+        cli,
+        "cmd_current_allocation",
+        lambda args: pytest.fail("data command must not run"),
+    )
+
+    rc = cli.main(["current-allocation"])
+
+    output = capsys.readouterr()
+    assert rc != 0
+    assert secret not in output.out + output.err
 
 
 def test_login_guards_ignore_existing_sdk_credential_file(

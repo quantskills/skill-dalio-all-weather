@@ -2,7 +2,7 @@
 
 > 用宏观增长—通胀象限、反波动率风险预算和季度再平衡，研究 A 股环境下的全天候资产配置。
 
-![Python](https://img.shields.io/badge/Python-3.12-3776AB)
+![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Project](https://img.shields.io/badge/QUANTSKILLS-Community%20Project-blue)
 
@@ -100,21 +100,21 @@ RC_i = w_i × (Σw)_i / (w'Σw)
 
 ## 快速开始
 
-已验收环境为 Windows、PowerShell 和 Python 3.12。Linux 与 macOS 尚未纳入正式验收。
+已验收环境为 Windows、PowerShell、Python 3.11 和 3.12。当前版本要求 Python >=3.11 且 <3.13；Linux 与 macOS 尚未纳入正式验收。
 
 ```powershell
 git clone https://github.com/quantskills/skill-dalio-all-weather.git
 Set-Location skill-dalio-all-weather
 
-py -3.12 -m venv .venv
+py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --require-hashes -r requirements-lock.txt
 ```
 
-真实数据连接必须显式配置由数据服务方或自建网关提供的受信 HTTPS 地址。锁定的第三方库自带默认地址使用 HTTP，本项目会直接拒绝；不存在关闭此限制的兼容开关。
+真实数据连接必须显式配置由 PandaData 数据服务方提供并维护的受信 HTTPS 地址。锁定的第三方库自带默认地址使用 HTTP，本项目会直接拒绝；使用者和本仓库不能代替服务方开启 HTTPS，也不存在关闭此限制的兼容开关。
 
 ```text
-PANDADATA_BASE_URL=https://你的受信网关
+PANDADATA_BASE_URL=https://服务方提供的地址
 ```
 
 认证可使用短期令牌：
@@ -134,10 +134,14 @@ PANDADATA_PASSWORD=你的密码
 
 为规避第三方库的凭证落盘行为，命令会在整个进程内禁用 `user.json` 的读取、写入、自动登录和删除，强制证书校验，并拒绝重定向。账号密码不会进入数据客户端。令牌到期后，命令不会从磁盘自动刷新；请结束进程，更新令牌或重新认证后再运行。
 
-先检查登录，再运行研究命令：
+先运行启动健康检查。它会检查 Python 版本、SDK 兼容性、DNS、TLS 握手、证书、主机名和凭证配置，但不会显示凭证；随后再检查真实登录：
 
 ```powershell
+python scripts\cli.py health-check
 python scripts\cli.py check-login
+
+# 服务方排查 HTTPS 时，可暂时只检查运行环境和传输
+python scripts\cli.py health-check --transport-only
 
 python scripts\cli.py current-allocation --end 20260710
 
@@ -210,7 +214,7 @@ backtest_YYYYMMDD_<run_id>/
 - 保证金、展期细节、滑点、税费、容量和停牌未完整模拟；
 - 成本采用权重变化的研究近似；
 - 历史回测和测试通过都不保证未来收益。
-- 真实数据运行依赖用户提供可访问的 PandaData 兼容 HTTPS 地址；只有 HTTP 地址时不会连接。
+- 真实数据运行依赖 PandaData 数据服务方提供并维护可访问的 HTTPS 地址；只有 HTTP 地址时不会连接。
 - 第三方 PandaData 包的许可证和公开维护来源未在其包元数据中说明，使用者需自行确认授权。
 
 ## 验证
@@ -222,7 +226,7 @@ python -m pytest tests -q
 python -m compileall -q scripts tests
 ```
 
-锁定依赖的算法与安全测试可离线复现；真实数据验收属于有条件验证，需要用户自己的数据权限和受信 HTTPS 服务。发布前还应运行代码规范、安全扫描和依赖漏洞审计。
+锁定依赖的算法与安全测试可离线复现；真实数据验收属于有条件验证，需要有效数据权限和服务方 HTTPS 端点。发布前还应运行代码规范、安全扫描和依赖漏洞审计。
 
 详细定义见 [研究方法](references/methodology.md) 和 [数据映射](references/data-mapping.md)。
 

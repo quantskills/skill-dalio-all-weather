@@ -4,9 +4,15 @@ Please report vulnerabilities through GitHub private vulnerability reporting.
 Do not include PandaData credentials, tokens, account identifiers, cached market
 data, or private output files in a public issue.
 
-Real-data connections require an explicitly configured trusted HTTPS endpoint.
-Plain HTTP and redirects are rejected. TLS certificate verification is forced
-on even if the third-party SDK environment is configured otherwise.
+Real-data connections require a trusted HTTPS endpoint supplied and maintained
+by the PandaData service provider. Users must configure that endpoint explicitly;
+this repository cannot enable HTTPS on the provider's behalf. Plain HTTP,
+credentials embedded in URLs, URL queries and fragments, and redirects are
+rejected. TLS certificate and hostname verification are always enforced.
+
+Run `python scripts/cli.py health-check` before login. The check validates the
+supported Python runtime, SDK compatibility, DNS, TLS negotiation, certificate,
+hostname, and credential configuration without printing credentials.
 
 Credentials are read only from the current process environment or a user-level
 `~/.pandadata.env`. The process disables the SDK's `user.json` reads, writes,
