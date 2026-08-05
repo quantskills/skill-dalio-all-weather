@@ -5,15 +5,7 @@ description: "Build and audit reproducible, research-only A-share All Weather al
 
 # A 股全天候资产配置研究
 
-用于研究股票、长债、中债、黄金和商品五类资产的全天候配置。输出必须标记 `RESEARCH_ONLY`；不得把目标权重、回测结果或象限判断表述为投资建议、交易指令或实盘许可。
-
-## 适用请求
-
-- 生成指定截止日的当前配置；
-- 诊断增长—通胀四象限；
-- 运行季度再平衡回测；
-- 检查风险贡献、持仓漂移、换手和成本；
-- 复核数据替代、宏观滞后和研究边界。
+研究股票、长债、中债、黄金和商品五类资产的配置。把所有结果标记为 `RESEARCH_ONLY`，不要把目标权重、回测或象限判断写成投资建议和交易指令。
 
 ## 运行准备
 
@@ -23,10 +15,11 @@ description: "Build and audit reproducible, research-only A-share All Weather al
 python -m pip install --require-hashes -r requirements-lock.txt
 ```
 
-真实数据连接必须显式提供由 PandaData 数据服务方配置并维护的受信 HTTPS 地址；HTTP 和重定向一律拒绝：
+真实数据只连接 PandaData 服务方提供的 HTTPS 地址：
 
 ```text
-PANDADATA_BASE_URL=https://服务方提供的地址
+# 示例地址，运行前替换
+PANDADATA_BASE_URL=https://data-provider.example
 ```
 
 优先使用短期令牌：
@@ -42,9 +35,9 @@ PANDADATA_USER=你的账号
 PANDADATA_PASSWORD=你的密码
 ```
 
-配置只从当前进程环境变量或用户级 `~/.pandadata.env` 读取。不得读取项目目录或当前工作目录中的 `.env`。不得在回复、日志、报告或仓库文件中展示凭证、令牌、完整第三方异常、私有缓存或私有研究结果。
+只从当前进程环境变量或用户目录下的 `~/.pandadata.env` 读取配置，不读取项目目录或当前工作目录中的 `.env`。不要在回复、日志、报告或仓库中展示凭证、令牌、完整第三方异常、私有缓存和私人研究结果。
 
-命令必须在整个进程内禁用第三方 SDK 的 `user.json` 读取、写入、自动登录和删除，强制证书校验，并使用不含账号密码的数据客户端。令牌到期后停止当前运行；结束进程并重新认证，不得从磁盘自动刷新。
+保持 SDK 的 `user.json` 读写和自动登录关闭，始终校验证书，只向数据客户端传入进程内令牌。HTTP、重定向和证书错误都直接停止；令牌过期后重新认证，不从磁盘自动刷新。
 
 先执行启动健康检查，再验证登录：
 
@@ -62,7 +55,7 @@ python scripts\cli.py check-login
 5. 在完整季度末形成目标，并在下一共同交易日执行。
 6. 输出配置、实际持仓、风险贡献、换手、成本、指纹和限制说明。
 
-仓库不附带行情、宏观数据、缓存或第三方安装包。使用者需要自行取得 PandaData 访问权限，PandaData 数据服务方需要提供受信 HTTPS 端点；本仓库不能代替服务方配置 HTTPS。使用者还需遵守相应的数据授权。`panda_data==0.0.12` 的公开包元数据未说明软件许可证或公开源码地址，使用前需确认授权。
+仓库不附带行情、宏观数据、缓存或 PandaData 安装包。运行者自行取得数据权限，服务方负责提供 HTTPS 地址。`panda_data==0.0.12` 的公开包信息没有写明许可证和源码地址，使用前确认授权；细节见 `THIRD_PARTY_NOTICES.md`。
 
 常用命令：
 
@@ -133,8 +126,4 @@ python -m pytest tests -q
 python -m compileall -q scripts tests
 ```
 
-测试通过只说明程序行为符合研究约定，不说明策略有效或适合实盘。真实数据运行属于有条件验证：没有服务方提供的 PandaData HTTPS 地址时必须停止。统计和数据定义见 `references/methodology.md` 与 `references/data-mapping.md`。
-
-## 维护与项目状态
-
-本项目目前为 beta，真实数据能力处于有条件验证状态。初始维护者为 Duzey，后续问题和变更通过仓库 Issues 与 Pull Requests 处理。它属于 QUANTSKILLS Community Project，不代表官方认证、验证或背书。
+测试通过只说明程序行为符合研究约定，不说明策略有效或适合实盘。没有服务方 HTTPS 地址时停止真实数据命令。统计和数据定义见 `references/methodology.md` 与 `references/data-mapping.md`。

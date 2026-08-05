@@ -1,15 +1,7 @@
-# Third-party services and packages
+# 第三方软件与数据说明
 
-This repository depends on `panda_data==0.0.12` to access the PandaData
-service. PandaData is an independent third-party service and is not part of
-this repository.
+项目通过 `panda_data==0.0.12` 访问 PandaData。它是独立的第三方服务，不属于本仓库。
 
-The package itself is not included in source archives or release bundles. It
-is downloaded separately when the user installs the locked dependencies. The
-published package metadata for version 0.0.12 does not identify a software
-license or a public source repository. Users are responsible for confirming
-that their account, data access, and intended use are authorized by the
-provider.
+源码压缩包和发布包都不包含该 Python 包，安装锁定依赖时会单独下载。版本 0.0.12 的公开包信息没有写明软件许可证和源码地址，因此使用者需要自行确认账号、数据权限和具体用途是否得到服务方许可。
 
-This project is not affiliated with or endorsed by PandaData. References to
-the service and its interfaces describe technical compatibility only.
+本仓库与 PandaData 没有隶属或背书关系；文档中提到接口，只表示技术上的兼容。

@@ -1,25 +1,23 @@
-# Security
+# 安全说明
 
-Please report vulnerabilities through GitHub private vulnerability reporting.
-Do not include PandaData credentials, tokens, account identifiers, cached market
-data, or private output files in a public issue.
+## 报告问题
 
-Real-data connections require a trusted HTTPS endpoint supplied and maintained
-by the PandaData service provider. Users must configure that endpoint explicitly;
-this repository cannot enable HTTPS on the provider's behalf. Plain HTTP,
-credentials embedded in URLs, URL queries and fragments, and redirects are
-rejected. TLS certificate and hostname verification are always enforced.
+安全问题请通过 GitHub Private Vulnerability Reporting 提交。不要在公开 Issue 中粘贴 PandaData 账号、令牌、请求内容、缓存行情或私人研究结果。凭证一旦泄露，请立即撤销或更换。
 
-Run `python scripts/cli.py health-check` before login. The check validates the
-supported Python runtime, SDK compatibility, DNS, TLS negotiation, certificate,
-hostname, and credential configuration without printing credentials.
+## 数据连接
 
-Credentials are read only from the current process environment or a user-level
-`~/.pandadata.env`. The process disables the SDK's `user.json` reads, writes,
-automatic re-login, and deletion behavior. The data client receives only an
-in-memory token. When that token expires, stop the process and authenticate
-again.
+真实数据只允许连接 PandaData 服务方提供的 HTTPS 地址。程序会拒绝 HTTP、重定向、URL 中的账号密码、查询参数和片段，并始终校验证书与主机名。
 
-The repository does not distribute the PandaData package or any market data.
-See `THIRD_PARTY_NOTICES.md` for its licensing and authorization boundary.
-Rotate a credential immediately if it is exposed.
+登录前运行：
+
+```powershell
+python scripts\cli.py health-check
+```
+
+健康检查会查看 Python 版本、SDK、DNS、TLS 证书和凭证配置，但不会打印凭证。
+
+## 凭证和本地文件
+
+凭证只从当前进程环境变量或用户目录下的 `~/.pandadata.env` 读取。运行时会关闭 SDK 对 `user.json` 的读写和自动登录，数据客户端只接收进程内令牌。令牌过期后，重新认证并启动命令。
+
+仓库不分发 PandaData 安装包或市场数据。第三方许可和数据授权边界见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
