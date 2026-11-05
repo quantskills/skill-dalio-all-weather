@@ -5,7 +5,7 @@ metadata:
   repository_url: https://github.com/quantskills/skill-dalio-all-weather
   project_type: skill
   collection: asset-allocation
-  license: MIT
+  license: GPL-3.0-only
   category: trader-research
   tags:
     - all-weather
@@ -22,7 +22,7 @@ metadata:
   requires: []
   external_requirements:
     - Python 3.11 or 3.12
-    - PandaData 0.0.12 access entitlement
+    - PandaData 1.0.6 access entitlement
     - Provider-supplied PandaData HTTPS endpoint with a trusted certificate
     - PandaData account credentials or a short-lived token
   permissions:
