@@ -84,7 +84,7 @@ RC_i = w_i × (Σw)_i / (w'Σw)
 
 项目使用 PandaData 的 `get_fund_daily`、`get_index_daily`、`get_future_daily`、`get_macro_pi`、`get_macro_na`，并可选使用 `get_macro_ir`。
 
-仓库不附带行情、宏观数据、缓存或 PandaData 安装包。你需要自行取得数据权限，并确认自己的用途符合服务条款。`panda_data==0.0.12` 的公开包信息没有写明许可证和源码地址，详情见[第三方说明](THIRD_PARTY_NOTICES.md)。
+仓库不附带行情、宏观数据、缓存或 PandaData 安装包。你需要自行取得数据权限，并确认自己的用途符合服务条款。`panda_data==1.0.6` 的公开包信息没有写明许可证和源码地址，详情见[第三方说明](THIRD_PARTY_NOTICES.md)。
 
 | 资产 | 逐日回退顺序 |
 |---|---|
@@ -240,3 +240,6 @@ python -m compileall -q scripts tests
 ## License
 
 本项目采用 [MIT License](LICENSE)。
+
+
+Pandadata 兼容维护：[abgyjaguo](https://github.com/abgyjaguo)，保留原项目作者署名。

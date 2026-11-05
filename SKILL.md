@@ -55,7 +55,7 @@ python scripts\cli.py check-login
 5. 在完整季度末形成目标，并在下一共同交易日执行。
 6. 输出配置、实际持仓、风险贡献、换手、成本、指纹和限制说明。
 
-仓库不附带行情、宏观数据、缓存或 PandaData 安装包。运行者自行取得数据权限，服务方负责提供 HTTPS 地址。`panda_data==0.0.12` 的公开包信息没有写明许可证和源码地址，使用前确认授权；细节见 `THIRD_PARTY_NOTICES.md`。
+仓库不附带行情、宏观数据、缓存或 PandaData 安装包。运行者自行取得数据权限，服务方负责提供 HTTPS 地址。`panda_data==1.0.6` 的公开包信息没有写明许可证和源码地址，使用前确认授权；细节见 `THIRD_PARTY_NOTICES.md`。
 
 常用命令：
 
@@ -127,3 +127,7 @@ python -m compileall -q scripts tests
 ```
 
 测试通过只说明程序行为符合研究约定，不说明策略有效或适合实盘。没有服务方 HTTPS 地址时停止真实数据命令。统计和数据定义见 `references/methodology.md` 与 `references/data-mapping.md`。
+
+## Pandadata compatibility
+
+[Pandadata 1.0.6 compatibility](references/pandadata-compatibility.md) — exact SDK baseline, validation scope, and shared guidance for all supported agent runtimes.
